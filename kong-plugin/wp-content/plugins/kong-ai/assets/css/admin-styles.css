@@ -1,0 +1,51 @@
+/* Existing styles */
+.wrap h1 {
+    color: #0073aa;
+}
+
+.toplevel_page_kong-ai img {
+    width: 22px;
+    height: 22px;
+    padding: 7px 0 0 !important;
+}
+
+/* New styles for setup form */
+.wrap {
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.kong-ai-form-field {
+    margin-bottom: 15px;
+}
+
+.kong-ai-form-field label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.kong-ai-form-field input[type="email"],
+.kong-ai-form-field input[type="password"],
+.kong-ai-form-field input[type="url"],
+.kong-ai-form-field input[type="submit"] {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+/* Error and success messages */
+.kong-ai-error {
+    color: #c0392b;
+}
+
+.kong-ai-success {
+    color: #27ae60;
+}
