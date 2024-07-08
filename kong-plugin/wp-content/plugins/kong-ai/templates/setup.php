@@ -1,5 +1,5 @@
 <div class="wrap">
-    <h1>LogIn</h1>
+    <h1>Kong.ai Setup</h1>
     <form id="kong-ai-setup-form" method="post" action="">
         <input type="hidden" name="kong_ai_setup_form" value="1">
         <div class="kong-ai-form-field">
@@ -18,28 +18,43 @@
     if (isset($_POST['kong_ai_setup_form'])) {
         $email = sanitize_email($_POST['kong_ai_email']);
         $password = sanitize_text_field($_POST['kong_ai_password']);
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'kong_ai_users';
+        $user = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE email = %s", $email));
 
-        // Perform API request to Kong.ai to get the token
-        $response = wp_remote_post('https://kong.ai/api/login', [
-            'body' => json_encode(['email' => $email, 'password' => $password]),
-            'headers' => ['Content-Type' => 'application/json']
-        ]);
-
-        if (is_wp_error($response)) {
-            echo '<p class="kong-ai-error">There was an error logging in. Please try again.</p>';
-        } else {
-            $body = wp_remote_retrieve_body($response);
-            $data = json_decode($body, true);
-
-            if (isset($data['token'])) {
-                // Store the token in the database
-                update_option('kong_ai_token', $data['token']);
-                echo '<p class="kong-ai-success">Logged in successfully. Your bot is now live.</p>';
-                // Add the script to the website header/footer
-                add_action('wp_head', 'add_kong_ai_script');
+        if ($user) {
+            // User exists, check password
+            if (password_verify($password, $user->password)) {
+                // Login successful, generate token and proceed
+                $token = hash('sha256', $email . time());
+                update_option('kong_ai_token', $token);
             } else {
-                echo '<p class="kong-ai-error">Invalid email or password. Please try again.</p>';
+                echo '<p class="kong-ai-error">Invalid password. Please try again.</p>';
             }
+        } else {
+            // User does not exist, create new account
+            $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+            $wpdb->insert($table_name, array('email' => $email, 'password' => $hashed_password));
+            echo '<p class="kong-ai-success">Account created successfully. Your bot is now live.</p>';
+            echo '<li>Hashed Password: ' . esc_html($hashed_password) . '</li>';
+
+            // Generate token and proceed
+            $token = hash('sha256', $email . time());
+            update_option('kong_ai_token', $token);
+            echo '<p>Generated Token: ' . esc_html($token) . '</p>';
+        }
+
+        // Display current database values
+        $users = $wpdb->get_results("SELECT * FROM $table_name");
+        echo '<h2>Current Registered Users:</h2>';
+        if ($users) {
+            echo '<ul>';
+            foreach ($users as $user) {
+                echo '<li>ID: ' . esc_html($user->id) . ' | Email: ' . esc_html($user->email) . '</li>';
+            }
+            echo '</ul>';
+        } else {
+            echo '<p>No users found.</p>';
         }
     }
     ?>
